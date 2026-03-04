@@ -215,135 +215,145 @@ export const blockIndexJsSnippet = (data, block) => {
   const blockSlug  = toSlug(block.name || 'my-block');
   const className  = toPascalCase(blockSlug);
   const isDynamic  = block.dynamic;
+  const attrs      = block.attributes || [];
+  const firstAttr  = attrs[0]?.name || 'content';
 
-  const attrDestructure = (block.attributes || [])
-    .map((a) => a.name)
-    .join(', ');
+  const attrDestructure = attrs.map((a) => a.name).filter(Boolean).join(', ') || firstAttr;
 
-  const attrControls = (block.attributes || [])
-    .filter((a) => a.type !== 'object' && a.type !== 'array')
+  // ── Which attribute types are used? ────────────────────────────────────
+  const simpleAttrs  = attrs.filter((a) => !['object', 'array'].includes(a.type));
+  const hasControls  = simpleAttrs.length > 0;
+  const hasBoolAttrs = simpleAttrs.some((a) => a.type === 'boolean');
+  const hasNumAttrs  = simpleAttrs.some((a) => a.type === 'number' || a.type === 'integer');
+
+  // ── @wordpress/block-editor named imports ───────────────────────────────
+  const blockEditorNames = ['useBlockProps'];
+  if (!isDynamic)   blockEditorNames.push('RichText');
+  if (hasControls)  blockEditorNames.push('InspectorControls');
+
+  const blockEditorImport = `import {\n\t${blockEditorNames.join(',\n\t')},\n} from '@wordpress/block-editor';`;
+
+  // ── @wordpress/components named imports (only when needed) ──────────────
+  const componentNames = [];
+  if (hasControls) {
+    componentNames.push('PanelBody', 'PanelRow');
+    if (!hasBoolAttrs && !hasNumAttrs) componentNames.push('TextControl');
+    if (hasBoolAttrs) componentNames.push('TextControl', 'ToggleControl');
+    if (hasNumAttrs)  componentNames.push('RangeControl');
+    // deduplicate
+    const seen = new Set();
+    componentNames.forEach((n) => seen.add(n));
+    componentNames.splice(0, componentNames.length, ...seen);
+  }
+  const componentsImport = componentNames.length > 0
+    ? `import {\n\t${componentNames.join(',\n\t')},\n} from '@wordpress/components';`
+    : '';
+
+  // ── InspectorControls panel rows ────────────────────────────────────────
+  const panelRows = simpleAttrs
     .map((a) => {
       if (a.type === 'boolean') {
-        return `\t\t\t\t\t<PanelRow>
-\t\t\t\t\t\t<ToggleControl
-\t\t\t\t\t\t\tlabel="${a.name}"
-\t\t\t\t\t\t\tchecked={${a.name}}
-\t\t\t\t\t\t\tonChange={(val) => setAttributes({ ${a.name}: val })}
-\t\t\t\t\t\t/>
-\t\t\t\t\t</PanelRow>`;
+        return (
+          `\t\t\t\t\t<PanelRow>\n` +
+          `\t\t\t\t\t\t<ToggleControl\n` +
+          `\t\t\t\t\t\t\t__nextHasNoMarginBottom\n` +
+          `\t\t\t\t\t\t\tlabel={ __( '${a.name}', '${namespace}' ) }\n` +
+          `\t\t\t\t\t\t\tchecked={ !! ${a.name} }\n` +
+          `\t\t\t\t\t\t\tonChange={ ( val ) => setAttributes( { ${a.name}: val } ) }\n` +
+          `\t\t\t\t\t\t/>\n` +
+          `\t\t\t\t\t</PanelRow>`
+        );
       }
       if (a.type === 'number' || a.type === 'integer') {
-        return `\t\t\t\t\t<PanelRow>
-\t\t\t\t\t\t<RangeControl
-\t\t\t\t\t\t\tlabel="${a.name}"
-\t\t\t\t\t\t\tvalue={${a.name}}
-\t\t\t\t\t\t\tonChange={(val) => setAttributes({ ${a.name}: val })}
-\t\t\t\t\t\t\tmin={0}
-\t\t\t\t\t\t\tmax={100}
-\t\t\t\t\t\t/>
-\t\t\t\t\t</PanelRow>`;
+        return (
+          `\t\t\t\t\t<PanelRow>\n` +
+          `\t\t\t\t\t\t<RangeControl\n` +
+          `\t\t\t\t\t\t\t__nextHasNoMarginBottom\n` +
+          `\t\t\t\t\t\t\tlabel={ __( '${a.name}', '${namespace}' ) }\n` +
+          `\t\t\t\t\t\t\tvalue={ ${a.name} }\n` +
+          `\t\t\t\t\t\t\tonChange={ ( val ) => setAttributes( { ${a.name}: val } ) }\n` +
+          `\t\t\t\t\t\t\tmin={ 0 }\n` +
+          `\t\t\t\t\t\t\tmax={ 100 }\n` +
+          `\t\t\t\t\t\t/>\n` +
+          `\t\t\t\t\t</PanelRow>`
+        );
       }
-      return `\t\t\t\t\t<PanelRow>
-\t\t\t\t\t\t<TextControl
-\t\t\t\t\t\t\tlabel="${a.name}"
-\t\t\t\t\t\t\tvalue={${a.name} ?? ''}
-\t\t\t\t\t\t\tonChange={(val) => setAttributes({ ${a.name}: val })}
-\t\t\t\t\t\t/>
-\t\t\t\t\t</PanelRow>`;
+      return (
+        `\t\t\t\t\t<PanelRow>\n` +
+        `\t\t\t\t\t\t<TextControl\n` +
+        `\t\t\t\t\t\t\t__nextHasNoMarginBottom\n` +
+        `\t\t\t\t\t\t\tlabel={ __( '${a.name}', '${namespace}' ) }\n` +
+        `\t\t\t\t\t\t\tvalue={ ${a.name} ?? '' }\n` +
+        `\t\t\t\t\t\t\tonChange={ ( val ) => setAttributes( { ${a.name}: val } ) }\n` +
+        `\t\t\t\t\t\t/>\n` +
+        `\t\t\t\t\t</PanelRow>`
+      );
     })
     .join('\n');
 
-  const hasControls = attrControls.length > 0;
+  // ── Edit component JSX body ─────────────────────────────────────────────
+  const inspectorBlock = hasControls
+    ? `\t\t\t<InspectorControls>\n\t\t\t\t<PanelBody title={ __( 'Settings', '${namespace}' ) }>\n${panelRows}\n\t\t\t\t</PanelBody>\n\t\t\t</InspectorControls>\n`
+    : '';
 
-  const controlImports = hasControls
-    ? `import {
-\tPanelBody,
-\tPanelRow,
-\tTextControl,
-\tToggleControl,
-\tRangeControl,
-} from '@wordpress/components';
-import { InspectorControls } from '@wordpress/block-editor';
-`
-    : `import { useBlockProps } from '@wordpress/block-editor';
+  const editJsx = isDynamic
+    ? `\tconst blockProps = useBlockProps();\n\n\treturn (\n\t\t<div { ...blockProps }>\n\t\t\t<p>{ __( '${block.title || className} (server-side rendered)', '${namespace}' ) }</p>\n\t\t</div>\n\t);`
+    : `\tconst blockProps = useBlockProps();\n\n\treturn (\n\t\t<>\n${inspectorBlock}\t\t\t<div { ...blockProps }>\n\t\t\t\t<RichText\n\t\t\t\t\ttagName="p"\n\t\t\t\t\tvalue={ ${firstAttr} ?? '' }\n\t\t\t\t\tonChange={ ( val ) => setAttributes( { ${firstAttr}: val } ) }\n\t\t\t\t\tplaceholder={ __( 'Write something…', '${namespace}' ) }\n\t\t\t\t/>\n\t\t\t</div>\n\t\t</>\n\t);`;
+
+  // ── Save component (static blocks only) ────────────────────────────────
+  const saveComponent = isDynamic ? '' : `
+/**
+ * Save component — output serialised into \`post_content\`, rendered on frontend.
+ *
+ * @param {Object} props            Block props.
+ * @param {Object} props.attributes Block attributes.
+ * @returns {JSX.Element}
+ */
+function Save( { attributes } ) {
+\tconst { ${attrDestructure} } = attributes;
+\tconst blockProps = useBlockProps.save();
+
+\treturn (
+\t\t<div { ...blockProps }>
+\t\t\t<RichText.Content tagName="p" value={ ${firstAttr} } />
+\t\t</div>
+\t);
+}
 `;
 
-  const editReturn = isDynamic
-    ? `\tconst blockProps = useBlockProps();
-\treturn (
-\t\t<div {...blockProps}>
-\t\t\t<p>{ __( '${block.title || className} — server-side rendered.', '${namespace}' ) }</p>
-\t\t</div>
-\t);`
-    : `\tconst blockProps = useBlockProps();
-\treturn (
-\t\t<>
-${hasControls ? `\t\t\t<InspectorControls>
-\t\t\t\t<PanelBody title={ __( 'Settings', '${namespace}' ) }>
-${attrControls}
-\t\t\t\t</PanelBody>
-\t\t\t</InspectorControls>` : ''}
-\t\t\t<div {...blockProps}>
-\t\t\t\t<RichText
-\t\t\t\t\ttagName="p"
-\t\t\t\t\tvalue={ ${(block.attributes || [])[0]?.name || 'content'} }
-\t\t\t\t\tonChange={ (val) => setAttributes({ ${(block.attributes || [])[0]?.name || 'content'}: val }) }
-\t\t\t\t\tplaceholder={ __( 'Write something…', '${namespace}' ) }
-\t\t\t\t/>
-\t\t\t</div>
-\t\t</>
-\t);`;
-
   return `/**
- * ${block.title || className} block.
+ * ${block.title || className} — Gutenberg block.
+ *
+ * Built with @wordpress/scripts (webpack + Babel JSX transform).
+ * No manual React import needed — handled by @wordpress/scripts automaticaly.
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
  */
 
 import { registerBlockType } from '@wordpress/blocks';
-import { __ } from '@wordpress/i18n';
-import { useBlockProps${hasControls ? ', RichText' : ', RichText'} } from '@wordpress/block-editor';
-${controlImports}
+import { __ }                from '@wordpress/i18n';
+${blockEditorImport}
+${componentsImport ? componentsImport + '\n' : ''}
+import metadata from './block.json';
 import './editor.css';
 import './style.css';
 
-import metadata from './block.json';
-
 /**
- * Edit component — renders in the block editor.
+ * Edit component — rendered exclusively inside the block editor.
  *
- * @param {Object} props           Block props.
- * @param {Object} props.attributes Block attributes.
- * @param {Function} props.setAttributes Setter.
+ * @param {Object}   props               Block edit props.
+ * @param {Object}   props.attributes    Attribute values from block.json schema.
+ * @param {Function} props.setAttributes Immutable attribute setter.
  * @returns {JSX.Element}
  */
-function Edit({ attributes, setAttributes }) {
-\tconst { ${attrDestructure || 'content'} } = attributes;
-${editReturn}
+function Edit( { attributes, setAttributes } ) {
+\tconst { ${attrDestructure} } = attributes;
+${editJsx}
 }
-
-${!isDynamic ? `/**
- * Save component — renders on the frontend.
- *
- * @param {Object} props Block props.
- * @returns {JSX.Element}
- */
-function Save({ attributes }) {
-\tconst { ${attrDestructure || 'content'} } = attributes;
-\tconst blockProps = useBlockProps.save();
-\treturn (
-\t\t<div {...blockProps}>
-\t\t\t<RichText.Content
-\t\t\t\ttagName="p"
-\t\t\t\tvalue={ ${(block.attributes || [])[0]?.name || 'content'} }
-\t\t\t/>
-\t\t</div>
-\t);
-}` : ''}
-
+${saveComponent}
 registerBlockType( metadata.name, {
 \tedit: Edit,
-${!isDynamic ? '\tsave: Save,' : '\tsave: () => null,'}
+\tsave: ${ isDynamic ? '() => null' : 'Save' },
 } );
 `;
 };
@@ -452,14 +462,18 @@ export const blocksPackageJsonSnippet = (data) => {
         packages: 'wp-scripts packages-update',
       },
       devDependencies: {
-        '@wordpress/scripts': '^30.0.0',
+        '@wordpress/scripts':       '^30.0.0',
+        '@wordpress/eslint-plugin': '^21.0.0',
       },
       dependencies: {
-        '@wordpress/blocks':       '^13.0.0',
-        '@wordpress/block-editor': '^14.0.0',
-        '@wordpress/components':   '^28.0.0',
-        '@wordpress/i18n':         '^5.0.0',
-        '@wordpress/primitives':   '^4.0.0',
+        '@wordpress/blocks':        '^13.0.0',
+        '@wordpress/block-editor':  '^14.0.0',
+        '@wordpress/components':    '^28.0.0',
+        '@wordpress/element':       '^6.0.0',
+        '@wordpress/i18n':          '^5.0.0',
+        '@wordpress/icons':         '^10.0.0',
+        '@wordpress/data':          '^10.0.0',
+        '@wordpress/primitives':    '^4.0.0',
       },
     },
     null,
