@@ -1,32 +1,36 @@
 {
-  "name": "wp-generate",
-  "version": "0.1.0",
+  "name": "wp-plugin-generator",
+  "version": "2.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve --openssl-legacy-provider",
-    "build": "vue-cli-service build --openssl-legacy-provider"
+    "dev":     "vite",
+    "build":   "vite build",
+    "preview": "vite preview",
+    "lint":    "eslint src --ext .js,.jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "bootstrap": "^4.5.0",
-    "core-js": "^3.6.4",
-    "file-saver": "^2.0.2",
-    "jquery": "^3.5.1",
-    "jszip": "^3.5.0",
-    "popper.js": "^1.16.1",
-    "vue": "^2.6.11",
-    "vue-clipboards": "^1.3.0",
-    "vue-code-highlight": "^0.7.4",
-    "vue-jstree": "^2.1.6",
-    "vue-router": "^3.3.4",
-    "vuedraggable": "^2.24.0",
-    "vuex": "^3.5.1"
+    "@headlessui/react":      "^2.1.0",
+    "@heroicons/react":       "^2.1.0",
+    "bootstrap":              "^5.3.3",
+    "file-saver":             "^2.0.5",
+    "immer":                  "^10.1.1",
+    "jszip":                  "^3.10.1",
+    "prismjs":                "^1.29.0",
+    "react":                  "^18.3.1",
+    "react-dom":              "^18.3.1",
+    "react-router-dom":       "^6.23.1",
+    "zustand":                "^4.5.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.3.0",
-    "@vue/cli-plugin-router": "~4.3.0",
-    "@vue/cli-plugin-vuex": "~4.3.0",
-    "@vue/cli-service": "~4.3.0",
-    "vue-template-compiler": "^2.6.11"
+    "@types/react":           "^18.3.3",
+    "@types/react-dom":       "^18.3.0",
+    "@vitejs/plugin-react":   "^4.3.0",
+    "eslint":                 "^9.3.0",
+    "eslint-plugin-react":    "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "vite":                   "^5.2.11"
   },
   "browserslist": [
     "> 1%",
