@@ -13,8 +13,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
-  server: {
-    port: 3000,
-    open: true,
+  server: { port: 3000, open: true },
+  test: {
+    environment: 'jsdom',
+    globals:     true,
+    setupFiles:  ['./src/tests/setup.js'],
+    coverage:    { reporter: ['text', 'html'] },
   },
 });

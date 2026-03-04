@@ -48,7 +48,11 @@ final class ${className} extends \\WP_Importer {
      * Entry point called by WP importer framework.
      */
     public function dispatch(): void {
-        $this->step = (int) ( $_GET['step'] ?? 0 );
+        if ( ! current_user_can( 'import' ) ) {
+            wp_die( esc_html__( 'You do not have permission to import data.', '${data.textDomain}' ) );
+        }
+
+        $this->step = absint( $_GET['step'] ?? 0 );
 
         switch ( $this->step ) {
             case 0:
