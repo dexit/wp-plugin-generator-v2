@@ -158,6 +158,25 @@ const store = {
         type: "php", file: true, name: "Importer.php", parent_id: "includes_import",
         value: () => CodeBase.importerCode(store.state.general, store.state.importers),
       },
+      // Blocks
+      { id: "root_blocks", type: "blocks_dir", directory: true, name: "blocks", parent_id: "root" },
+      { id: "blocks_src", type: "blocks_src_dir", directory: true, name: "src", parent_id: "root_blocks" },
+      { id: "blocks_build", type: "blocks_build_dir", directory: true, name: "build", parent_id: "root_blocks" },
+      {
+        id: "blocks_package_json",
+        type: "json", file: true, name: "package.json", parent_id: "root_blocks",
+        value: () => CodeBase.blocksPackageJson(store.state.general),
+      },
+      {
+        id: "blocks_webpack_config",
+        type: "js", file: true, name: "webpack.config.js", parent_id: "root_blocks",
+        value: () => CodeBase.blocksWebpackConfig(store.state.general, store.state.blocks),
+      },
+      {
+        id: "includes_blocks_php",
+        type: "php", file: true, name: "Blocks.php", parent_id: "root_includes",
+        value: () => CodeBase.blocksPhpCode(store.state.general, store.state.blocks),
+      },
       // Root files
       { id: "root_language", type: "lang-dir", directory: true, name: "languages", parent_id: "root" },
       { id: "root_template", type: "template-dir", directory: true, name: "templates", parent_id: "root" },
@@ -205,6 +224,7 @@ const store = {
     postRestFields:  [],
     emails:          [],
     importers:       [],
+    blocks:          [],
   },
 
   getters: {
@@ -231,6 +251,7 @@ const store = {
     postRestFields:  (s) => s.postRestFields,
     emails:          (s) => s.emails,
     importers:       (s) => s.importers,
+    blocks:          (s) => s.blocks,
   },
 
   mutations: {
@@ -389,6 +410,39 @@ const store = {
     addImporter(state) { state.importers.push({ id: "", name: "", description: "", className: "", acceptedTypes: ".csv,.xml,.json" }); },
     removeImporter(state, { index }) { Vue.delete(state.importers, index); },
     setImporterData(state, { index, key, value }) { Vue.set(state.importers[index], key, value); },
+
+    // ── Blocks ────────────────────────────────────────────────────────────
+    addBlock(state) {
+      state.blocks.push({
+        name: "",
+        title: "",
+        category: "common",
+        icon: "block-default",
+        description: "",
+        keywords: "",
+        dynamic: false,
+        supportsAnchor: false,
+        supportsAlign: false,
+        supportsColor: false,
+        supportsTypo: false,
+        supportsSpacing: false,
+        supportsClassName: true,
+        attributes: [],
+      });
+    },
+    removeBlock(state, { index }) { Vue.delete(state.blocks, index); },
+    setBlockData(state, { index, key, value }) { Vue.set(state.blocks[index], key, value); },
+    addBlockAttr(state, { blockIndex }) {
+      const block = state.blocks[blockIndex];
+      if (!block.attributes) Vue.set(block, 'attributes', []);
+      block.attributes.push({ name: "", type: "string", default: "" });
+    },
+    removeBlockAttr(state, { blockIndex, attrIndex }) {
+      Vue.delete(state.blocks[blockIndex].attributes, attrIndex);
+    },
+    setBlockAttrData(state, { blockIndex, attrIndex, key, value }) {
+      Vue.set(state.blocks[blockIndex].attributes[attrIndex], key, value);
+    },
   },
 
   actions: {
@@ -496,6 +550,14 @@ const store = {
     addImporter({ commit, dispatch })               { commit("addImporter"); dispatch("setFileArchitecture", true); },
     removeImporter({ commit, dispatch }, p)         { commit("removeImporter", p); dispatch("setFileArchitecture", true); },
     setImporterData({ commit, dispatch }, p)        { commit("setImporterData", p); dispatch("setFileArchitecture", true); },
+
+    // ── Blocks ──────────────────────────────────────────────────────────────
+    addBlock({ commit, dispatch })                  { commit("addBlock"); dispatch("setFileArchitecture", true); },
+    removeBlock({ commit, dispatch }, p)            { commit("removeBlock", p); dispatch("setFileArchitecture", true); },
+    setBlockData({ commit, dispatch }, p)           { commit("setBlockData", p); dispatch("setFileArchitecture", true); },
+    addBlockAttr({ commit, dispatch }, p)           { commit("addBlockAttr", p); dispatch("setFileArchitecture", true); },
+    removeBlockAttr({ commit, dispatch }, p)        { commit("removeBlockAttr", p); dispatch("setFileArchitecture", true); },
+    setBlockAttrData({ commit, dispatch }, p)       { commit("setBlockAttrData", p); dispatch("setFileArchitecture", true); },
   },
 
   modules: {},

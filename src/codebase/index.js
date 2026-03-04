@@ -42,12 +42,7 @@ import { requestUtilsSnippet }   from "./request-utils-snippet";
 import { dbUtilsSnippet }        from "./db-utils-snippet";
 import { emailSnippet }          from "./email-snippet";
 import { importerSnippet }       from "./importer-snippet";
-import {
-  allBlockFiles,
-  blocksPhpSnippet,
-  blocksPackageJsonSnippet,
-  blocksWebpackConfigSnippet,
-} from "./blocks-snippet";
+import { allBlockFiles, blocksPhpSnippet, blocksPackageJsonSnippet, blocksWebpackConfigSnippet } from "./blocks-snippet";
 
 export const CodeBase = {
   // ── Original ─────────────────────────────────────────────────────────────
@@ -94,9 +89,9 @@ export const CodeBase = {
   emailCode:          (data, emails)        => emailSnippet(validateFields(data), emails),
   importerCode:       (data, importers)     => importerSnippet(validateFields(data), importers),
 
-  // ── Blocks ───────────────────────────────────────────────────────────────
-  blocksPhpCode:          (data, blocks)  => blocksPhpSnippet(validateFields(data), blocks),
-  blocksPackageJson:      (data)          => blocksPackageJsonSnippet(validateFields(data)),
-  blocksWebpackConfig:    (data, blocks)  => blocksWebpackConfigSnippet(validateFields(data), blocks),
-  allBlockFiles:          (data, blocks)  => allBlockFiles(validateFields(data), blocks),
+  // ── Blocks ────────────────────────────────────────────────────────────────
+  blocksPhpCode:         (data, blocks) => blocksPhpSnippet(validateFields(data), blocks),
+  blocksPackageJson:     (data)         => blocksPackageJsonSnippet(validateFields(data)),
+  blocksWebpackConfig:   (data, blocks) => blocksWebpackConfigSnippet(validateFields(data), blocks),
+  allBlockFiles:         (data, blocks) => allBlockFiles(validateFields(data), blocks),
 };
