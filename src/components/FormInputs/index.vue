@@ -21,6 +21,7 @@
     <screen-options-section />
     <emails-section />
     <importers-section />
+    <blocks-section />
   </div>
 </template>
 
@@ -45,6 +46,7 @@ import BulkEditSection       from "./BulkEdit";
 import ScreenOptionsSection  from "./ScreenOptions";
 import EmailsSection         from "./Emails";
 import ImportersSection      from "./Importers";
+import BlocksSection         from "./Blocks";
 
 export default {
   components: {
@@ -66,6 +68,7 @@ export default {
     ScreenOptionsSection,
     EmailsSection,
     ImportersSection,
+    BlocksSection,
   },
 };
 </script>

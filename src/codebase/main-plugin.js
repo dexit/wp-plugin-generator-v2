@@ -77,7 +77,7 @@ final class ${data.mainClassName} {
      * 
      * @since ${data.version}
      */
-    private $container = [];
+    private array $container = [];
 
     /**
      * Constructor for the ${data.mainClassName} class.
@@ -125,7 +125,7 @@ final class ${data.mainClassName} {
      *
      * @return mixed
      */
-    public function __get( $prop ) {
+    public function __get( string $prop ): mixed {
         if ( array_key_exists( $prop, $this->container ) ) {
             return $this->container[ $prop ];
         }
@@ -142,7 +142,7 @@ final class ${data.mainClassName} {
      *
      * @return mixed
      */
-    public function __isset( $prop ) {
+    public function __isset( string $prop ): bool {
         return isset( $this->{$prop} ) || isset( $this->container[ $prop ] );
     }
 
@@ -284,22 +284,25 @@ final class ${data.mainClassName} {
      *
      * @return bool
      */
-    private function is_request( $type ) {
+    private function is_request( string $type ): bool {
         switch ( $type ) {
-            case 'admin' :
+            case 'admin':
                 return is_admin();
 
-            case 'ajax' :
+            case 'ajax':
                 return defined( 'DOING_AJAX' );
 
-            case 'rest' :
+            case 'rest':
                 return defined( 'REST_REQUEST' );
 
-            case 'cron' :
+            case 'cron':
                 return defined( 'DOING_CRON' );
 
-            case 'frontend' :
+            case 'frontend':
                 return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
+
+            default:
+                return false;
         }
     }
 
