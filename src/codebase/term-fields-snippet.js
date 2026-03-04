@@ -117,6 +117,10 @@ final class ${className} {
      * @param int $term_id
      */
     public function save_fields( int $term_id ): void {
+        if ( ! current_user_can( 'edit_terms' ) ) {
+            return;
+        }
+
         if ( ! isset( $_POST['${taxonomy}_fields_nonce'] )
             || ! wp_verify_nonce( sanitize_key( $_POST['${taxonomy}_fields_nonce'] ), $this->nonce_action )
         ) {

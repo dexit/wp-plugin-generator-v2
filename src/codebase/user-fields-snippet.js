@@ -40,7 +40,7 @@ const sanitizeField = (field) => {
   if (field.type === 'checkbox') {
     return `( isset( $_POST['${field.key}'] ) ? 1 : 0 )`;
   }
-  return `${map[field.type] || 'sanitize_text_field'}( sanitize_text_field( wp_unslash( $_POST['${field.key}'] ?? '' ) ) )`;
+  return `${map[field.type] || 'sanitize_text_field'}( wp_unslash( $_POST['${field.key}'] ?? '' ) )`;
 };
 
 export const userFieldsSnippet = (data, userFields) => {

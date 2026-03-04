@@ -10,7 +10,7 @@ const toPascalCase = (str) => {
 
 const methodList = (methods) => {
   if (!methods || !methods.length) return "'GET'";
-  return methods.map((m) => `'${m.toUpperCase()}'`).join( ' | ' );
+  return methods.map((m) => `'${m.toUpperCase()}'`).join( ', ' );
 };
 
 const argSchemas = (fields) => {
